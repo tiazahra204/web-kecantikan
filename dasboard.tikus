@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlowGloss - Beauty Analytics Dashboard</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #fcf8f7;
+            --bg-sidebar: #ffffff;
+            --accent-pink: #f3d1cb;
+            --text-dark: #2d2422;
+            --text-muted: #8c7e7c;
+            --pure-white: #ffffff;
+            --rose-gold: #d4a373;
+            --border-color: #f1eae7;
+            --shadow: 0 4px 20px rgba(243, 209, 203, 0.15);
+            --radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        aside {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 30px 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-dark);
+            margin-bottom: 40px;
+        }
+
+        .logo i {
+            color: var(--rose-gold);
+        }
+
+        .menu-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links li.active a {
+            background-color: var(--bg-primary);
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .nav-links li.active a i {
+            color: var(--rose-gold);
+        }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 40px;
+            max-width: 1400px;
+        }
+
+        /* --- TOP BAR --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 42px;
+            border: 1px solid var(--border-color);
+            background-color: var(--pure-white);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-pink);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .notification-btn {
+            background: var(--pure-white);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notification-btn::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 8px;
+            height: 8px;
+            background-color: #ff7675;
+            border-radius: 50%;
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-pink);
+        }
+
+        /* --- METRICS GRID --- */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background-color: var(--pure-white);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(243, 209, 203, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-info h3 {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .card-info .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .card-info .trend {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .trend.up { color: #2ecc71; }
+        .trend.down { color: #e74c3c; }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background-color: var(--bg-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--rose-gold);
+            font-size: 18px;
+        }
+
+        /* --- VISUALIZATION SPLIT --- */
+        .content-split {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .chart-container, .products-panel {
+            background-color: var(--pure-white);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(243, 209, 203, 0.2);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .panel-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* --- PRODUCT LIST --- */
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .product-details {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .product-img-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--rose-gold);
+        }
+
+        .product-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .product-sales {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .stock-status {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .status-in { background-color: #e8f8f0; color: #2ecc71; }
+        .status-low { background-color: #fef5e7; color: #f39c12; }
+
+        /* Responsive */
+        @media(max-width: 1024px) {
+            .content-split {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside>
+        <div class="logo">
+            <i class="fa-solid fa-sparkles"></i>
+            <span>GlowGloss</span>
+        </div>
+        
+        <p class="menu-label">Menu</p>
+        <ul class="nav-links">
+            <li class="active"><a href="#"><i class="fa-solid fa-chart-pie"></i> Overview</a></li>
+            <li><a href="#"><i class="fa-solid fa-bag-shopping"></i> Products</a></li>
+            <li><a href="#"><i class="fa-solid fa-calendar-check"></i> Bookings</a></li>
+            <li><a href="#"><i class="fa-solid fa-users"></i> Clients</a></li>
+            <li><a href="#"><i class="fa-solid fa-wand-magic-sparkles"></i> Treatments</a></li>
+            <li><a href="#"><i class="fa-solid fa-sliders"></i> Settings</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- HEADER / TOPBAR -->
+        <header>
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search product or client...">
+            </div>
+            <div class="user-profile">
+                <button class="notification-btn">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Profile" class="avatar">
+            </div>
+        </header>
+
+        <!-- METRICS -->
+        <div class="metrics-grid">
+            <div class="card">
+                <div class="card-info">
+                    <h3>Total Revenue</h3>
+                    <div class="value">Rp 24.8M</div>
+                    <div class="trend up"><i class="fa-solid fa-arrow-trend-up"></i> +12.4%</div>
+                </div>
+                <div class="card-icon"><i class="fa-solid fa-wallet"></i></div>
+            </div>
+            <div class="card">
+                <div class="card-info">
+                    <h3>Appointments</h3>
+                    <div class="value">148</div>
+                    <div class="trend up"><i class="fa-solid fa-arrow-trend-up"></i> +8.2%</div>
+                </div>
+                <div class="card-icon"><i class="fa-solid fa-calendar-days"></i></div>
+            </div>
+            <div class="card">
+                <div class="card-info">
+                    <h3>Active Clients</h3>
+                    <div class="value">1,240</div>
+                    <div class="trend up"><i class="fa-solid fa-arrow-trend-up"></i> +21.5%</div>
+                </div>
+                <div class="card-icon"><i class="fa-solid fa-user-heart"></i></div>
+            </div>
+            <div class="card">
+                <div class="card-info">
+                    <h3>Product Sold</h3>
+                    <div class="value">432 pcs</div>
+                    <div class="trend down"><i class="fa-solid fa-arrow-trend-down"></i> -2.4%</div>
+                </div>
+                <div class="card-icon"><i class="fa-solid fa-sparkles"></i></div>
+            </div>
+        </div>
+
+        <!-- MAIN VISUALIZATION SPLIT -->
+        <div class="content-split">
+            <!-- CHART -->
+            <div class="chart-container">
+                <div class="panel-header">
+                    <h2>Sales & Treatment Analytics</h2>
+                </div>
+                <canvas id="salesChart" height="140"></canvas>
+            </div>
+
+            <!-- BEST SELLING / TOP PRODUCTS -->
+            <div class="products-panel">
+                <div class="panel-header">
+                    <h2>Top Products</h2>
+                </div>
+                <div class="product-list">
+                    <div class="product-item">
+                        <div class="product-details">
+                            <div class="product-img-placeholder"><i class="fa-solid fa-bottle-droplet"></i></div>
+                            <div>
+                                <div class="product-name">Glow Serum Pro</div>
+                                <div class="product-sales">182 sold</div>
+                            </div>
+                        </div>
+                        <span class="stock-status status-in">In Stock</span>
+                    </div>
+                    <div class="product-item">
+                        <div class="product-details">
+                            <div class="product-img-placeholder"><i class="fa-solid fa-sparkles"></i></div>
+                            <div>
+                                <div class="product-name">Rose Hydrating Mist</div>
+                                <div class="product-sales">144 sold</div>
+                            </div>
+                        </div>
+                        <span class="stock-status status-in">In Stock</span>
+                    </div>
+                    <div class="product-item">
+                        <div class="product-details">
+                            <div class="product-img-placeholder"><i class="fa-solid fa-eye"></i></div>
+                            <div>
+                                <div class="product-name">Retinol Eye Cream</div>
+                                <div class="product-sales">98 sold</div>
+                            </div>
+                        </div>
+                        <span class="stock-status status-low">Low Stock</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JAVASCRIPT FOR CHART INTERACTION -->
+    <script>
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        
+        // Gradient background for a sleek look
+        const revenueGradient = ctx.createLinearGradient(0, 0, 0, 300);
+        revenueGradient.addColorStop(0, 'rgba(212, 163, 115, 0.4)');
+        revenueGradient.addColorStop(1, 'rgba(212, 163, 115, 0.0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Revenue (Millions)',
+                    data: [12, 15, 14, 18, 22, 20, 24.8],
+                    borderColor: '#d4a373',
+                    borderWidth: 3,
+                    backgroundColor: revenueGradient,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#d4a373',
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        grid: { color: '#f1eae7' },
+                        ticks: { callback: value => 'Rp ' + value + 'M' }
+                    }
+                }
+            }
+        });
+
+        // Simple interactive handling for navigation items
+        document.querySelectorAll('.nav-links li').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
